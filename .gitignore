@@ -1,0 +1,25 @@
+# Secrets
+# Streamlit
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment
+.env
+.env.local
+
+# Data files
+*.csv
+*.xlsx
+*.xls
+all_corrections_collected.csv
