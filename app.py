@@ -2,12 +2,13 @@
 
 Enumerators review the errors flagged for their own submissions, see the full
 variable label and its dependent variables, enter a correction and an
-explanation. Corrections are appended to a private GitHub repository CSV.
+explanation. Data and corrections are read from and saved to the
+``amhara_phone_hfc`` GitHub repository.
 
 Data flow
 ---------
-* read-only errors : private repo -> ``phone_planting_constraints.csv`` / ``phone_planting_logic.csv``
-* corrections      : private repo -> ``phone_planting_corrections.csv`` (append + de-duplicate)
+* read-only errors : ``amhara_phone_hfc`` -> ``phone_planting_constraints.csv`` / ``phone_planting_logic.csv``
+* corrections      : ``amhara_phone_hfc`` -> ``phone_planting_corrections.csv`` (append + de-duplicate)
 
 Performance notes
 -----------------
@@ -44,7 +45,7 @@ st.set_page_config(
 )
 
 GITHUB_OWNER = "mohammed-seid"
-GITHUB_REPO = "hfc-data-private"
+GITHUB_REPO = "amhara_phone_hfc"
 GITHUB_BRANCH = "main"
 
 ADMIN_USERNAME = "admin"
@@ -591,7 +592,7 @@ def deduplicate_corrections(df: Optional[pd.DataFrame]) -> pd.DataFrame:
 
 @st.cache_data(ttl=CORRECTIONS_TTL, show_spinner=False)
 def load_corrections() -> pd.DataFrame:
-    """Saved corrections from the private repo. Empty DataFrame if none yet."""
+    """Saved corrections from GitHub. Empty DataFrame if none yet."""
     headers = github_headers()
     url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{CORRECTIONS_FILE}"
     try:
@@ -1379,7 +1380,10 @@ def render_admin_dashboard(constraints_df: pd.DataFrame, logic_df: pd.DataFrame,
                     file_name=f"phone_planting_corrections_{stamp}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
-            st.caption("Corrections are stored in the private repository; the file is de-duplicated by error key.")
+            st.caption(
+                f"Corrections are stored in {GITHUB_OWNER}/{GITHUB_REPO}; "
+                "the file is de-duplicated by error key."
+            )
 
 
 # ============================================================================
@@ -1648,7 +1652,7 @@ def _save_household(uid: str, name: str, phone: str, woreda: str, kebele: str, v
         for error_key in consumed_keys:
             st.session_state.all_corrections_data.pop(error_key, None)
         load_corrections.clear()
-        st.success("Corrections saved to the private repository.")
+        st.success(f"Corrections saved to {GITHUB_OWNER}/{GITHUB_REPO}.")
         st.rerun()
 
 
@@ -1708,6 +1712,10 @@ def main() -> None:
         st.caption(
             f"{CONSTRAINTS_FILE}: {len(constraints_df):,} rows · "
             f"{LOGIC_FILE}: {len(logic_df):,} rows · repository {GITHUB_OWNER}/{GITHUB_REPO}"
+        )
+        st.caption(
+            f"Saved corrections are written to "
+            f"{GITHUB_OWNER}/{GITHUB_REPO}/{CORRECTIONS_FILE}."
         )
         if st.button("Refresh data from GitHub"):
             clear_data_cache()
